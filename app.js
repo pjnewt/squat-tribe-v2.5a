@@ -1,13 +1,43 @@
-const PROFILE_KEY = "squatTribe_v25_profile";
-const HISTORY_KEY = "squatTribe_v25_history";
-const ROTATION_KEY = "squatTribe_v25_rotation";
+const PROFILE_KEY = "squatTribe_v26a_profile";
+const HISTORY_KEY = "squatTribe_v26a_history";
+const ROTATION_KEY = "squatTribe_v26a_rotation";
 
 const EXERCISES = [
-  { key: "back", name: "Back Squat", type: "bilateral", coeff: 0.70 },
-  { key: "bulgarian", name: "Bulgarian Squat", type: "unilateral", coeff: 0.85 },
-  { key: "front", name: "Front Squat", type: "bilateral", coeff: 0.70 },
-  { key: "sidestep", name: "Side Step", type: "unilateral", coeff: 0.85 },
-  { key: "sumo", name: "Sumo Squat", type: "bilateral", coeff: 0.70 }
+  {
+    key: "back",
+    name: "Back Squat",
+    type: "bilateral",
+    coeff: 0.70,
+    image: "SS Back squat.png"
+  },
+  {
+    key: "bulgarian",
+    name: "Bulgarian Squat",
+    type: "unilateral",
+    coeff: 0.85,
+    image: "SS Bulgarian squat.png"
+  },
+  {
+    key: "front",
+    name: "Front Squat",
+    type: "bilateral",
+    coeff: 0.70,
+    image: "SS Front squat.png"
+  },
+  {
+    key: "sidestep",
+    name: "Side Step",
+    type: "unilateral",
+    coeff: 0.85,
+    image: "SS Side step.png"
+  },
+  {
+    key: "sumo",
+    name: "Sumo Squat",
+    type: "bilateral",
+    coeff: 0.70,
+    image: "SS Sumo squat.png"
+  }
 ];
 
 let reps = 0;
@@ -183,7 +213,7 @@ function renderSelectedExercise() {
   el("selectedExerciseStatus").textContent =
     exercise.type === "unilateral" ? "Weaker side first" : "Ready to train";
 
-  el("selectedExerciseImage").innerHTML = getExerciseArt(exercise.name);
+  el("selectedExerciseImage").innerHTML = getExerciseArt(exercise);
   const last = getLastSessionForExercise(exercise.key);
 
   if (!last) {
@@ -220,7 +250,7 @@ function startSelectedExercise() {
   const profile = getProfile();
 
   el("sessionExerciseName").textContent = exercise.name;
-  el("sessionExerciseImage").innerHTML = getExerciseArt(exercise.name);
+  el("sessionExerciseImage").innerHTML = getExerciseArt(exercise);
   el("sessionBodyweight").value = profile.bodyweight;
   el("sessionExternalWeight").value = 0;
 
@@ -451,7 +481,6 @@ function saveSet() {
       ? `MYO REST (${activeSide.toUpperCase()})`
       : "MYO REST";
 
-    updateButtons("myo-rest");
     clearPhaseTimeouts();
 
     myoRestTimeout = setTimeout(() => {
@@ -523,6 +552,7 @@ function finishSession() {
     pendingSession = {
       exerciseKey: exercise.key,
       exerciseName: exercise.name,
+      image: exercise.image,
       date: new Date().toLocaleString(),
       bodyweight: profileBodyweight,
       externalWeight,
@@ -590,6 +620,7 @@ function finishSession() {
   pendingSession = {
     exerciseKey: exercise.key,
     exerciseName: exercise.name,
+    image: exercise.image,
     date: new Date().toLocaleString(),
     bodyweight: profileBodyweight,
     externalWeight,
@@ -625,7 +656,13 @@ function showSummary() {
   if (!pendingSession) return;
 
   const s = pendingSession;
-  let html = `<div class="summary-section"><div class="summary-heading">${s.exerciseName}</div>${s.date}</div>`;
+  let html = `
+    <div class="exercise-figure summary-art">${getExerciseArt({ name: s.exerciseName, image: s.image })}</div>
+    <div class="summary-section">
+      <div class="summary-heading">${s.exerciseName}</div>
+      ${s.date}
+    </div>
+  `;
 
   if (s.left && s.right) {
     html += `
@@ -643,22 +680,36 @@ function showSummary() {
         <div class="symmetry-label">Balance</div>
         ${renderSymmetryBar(parseFloat(s.left.TRDS), parseFloat(s.right.TRDS))}
         Total TRDS: ${s.TRDS}<br>
-        Difference: ${s.diffPct}%
+        Difference: ${s.diffPct}%<br>
+        ${interpretAsymmetry(parseFloat(s.diffPct))}
       </div>
     `;
   } else {
+    const bestMyo = getBestMyoTRDS(s.myoSets);
     html += `
       <div class="summary-section">
         Anchor: ${s.anchorReps} reps (${s.anchorTime}s) | TRDS: ${s.anchorTRDS}<br><br>
         ${renderMyoHistory(s.myoSets)}<br><br>
         Total Reps: ${s.totalReps}<br>
-        Total TRDS: ${s.TRDS}
+        Total TRDS: ${s.TRDS}<br>
+        Best Myo TRDS: ${bestMyo}
       </div>
     `;
   }
 
   el("summaryContent").innerHTML = html;
   showScreen("screen-summary");
+}
+
+function getBestMyoTRDS(myoSets) {
+  if (!myoSets || !myoSets.length) return "N/A";
+  return Math.max(...myoSets.map(set => parseFloat(set.TRDS))).toFixed(2);
+}
+
+function interpretAsymmetry(diffPct) {
+  if (diffPct < 5) return "Balanced";
+  if (diffPct < 12) return "Mild asymmetry";
+  return "Marked asymmetry";
 }
 
 function commitPendingSession() {
@@ -845,6 +896,16 @@ function detect(e) {
   }
 }
 
-function getExerciseArt(name) {
-  return `<div>${name}</div>`;
+function getExerciseArt(exercise) {
+  const alt = exercise.name || "Exercise";
+  const src = exercise.image || "";
+  return `
+    <img
+      src="${src}"
+      alt="${alt}"
+      class="exercise-art-img"
+      loading="eager"
+      onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div>${alt}</div>');"
+    />
+  `;
 }
