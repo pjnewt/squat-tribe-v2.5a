@@ -657,7 +657,9 @@ function showSummary() {
 
   const s = pendingSession;
   let html = `
-    <div class="exercise-figure summary-art">${getExerciseArt({ name: s.exerciseName, image: s.image })}</div>
+    <div class="summary-art-wrap">
+      ${getExerciseArt({ name: s.exerciseName, image: s.image })}
+    </div>
     <div class="summary-section">
       <div class="summary-heading">${s.exerciseName}</div>
       ${s.date}
