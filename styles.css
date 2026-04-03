@@ -178,31 +178,24 @@ body {
 }
 
 .exercise-art-img {
-  max-height: 100%;
-  max-width: 120px;
+  max-width: 90px;
+  max-height: 90px;
   width: auto;
   height: auto;
   object-fit: contain;
-  opacity: 0.9;
-  filter:
-    brightness(0)
-    invert(1)
-    sepia(1)
-    saturate(6)
-    hue-rotate(5deg)
-    brightness(1.05)
-    drop-shadow(0 0 6px rgba(255, 215, 0, 0.35));
+  display: block;
+  margin: 0 auto;
 }
 
-.summary-art {
-  height: 100px;
-  min-height: 100px;
+.summary-art-wrap {
+  display: flex;
+  justify-content: center;
   margin-bottom: 12px;
 }
 
-.summary-art .exercise-art-img {
-  max-width: 90px;
-  max-height: 90px;
+.summary-art-wrap .exercise-art-img {
+  max-width: 72px;
+  max-height: 72px;
 }
 
 .summary-block {
