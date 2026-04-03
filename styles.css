@@ -57,7 +57,7 @@ body {
 
 .card {
   background: var(--panel);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 22px;
   padding: 16px;
   margin-bottom: 14px;
@@ -106,7 +106,7 @@ body {
 
 .pentagon-outline {
   fill: none;
-  stroke: rgba(255,215,0,0.4);
+  stroke: rgba(255, 215, 0, 0.4);
   stroke-width: 3;
 }
 
@@ -157,7 +157,8 @@ body {
 .exercise-figure {
   width: 100%;
   min-height: 120px;
-  border: 1px solid rgba(255,215,0,0.18);
+  height: 120px;
+  border: 1px solid rgba(255, 215, 0, 0.18);
   border-radius: 18px;
   display: flex;
   align-items: center;
@@ -166,11 +167,42 @@ body {
   font-size: 14px;
   text-align: center;
   padding: 10px;
+  overflow: hidden;
+  background: #101010;
 }
 
 .exercise-figure.large {
   min-height: 160px;
+  height: 160px;
   margin-bottom: 14px;
+}
+
+.exercise-art-img {
+  max-height: 100%;
+  max-width: 120px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.9;
+  filter:
+    brightness(0)
+    invert(1)
+    sepia(1)
+    saturate(6)
+    hue-rotate(5deg)
+    brightness(1.05)
+    drop-shadow(0 0 6px rgba(255, 215, 0, 0.35));
+}
+
+.summary-art {
+  height: 100px;
+  min-height: 100px;
+  margin-bottom: 12px;
+}
+
+.summary-art .exercise-art-img {
+  max-width: 90px;
+  max-height: 90px;
 }
 
 .summary-block {
@@ -185,6 +217,15 @@ body {
 
 .summary-content {
   line-height: 1.6;
+}
+
+.summary-section {
+  margin-bottom: 14px;
+}
+
+.summary-heading {
+  color: var(--muted);
+  margin-bottom: 6px;
 }
 
 .field {
@@ -203,7 +244,7 @@ body {
   width: 100%;
   min-height: 46px;
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: #0f0f10;
   color: var(--white);
   padding: 0 12px;
@@ -211,7 +252,7 @@ body {
 }
 
 .phase-box {
-  border: 1px solid rgba(255,215,0,0.2);
+  border: 1px solid rgba(255, 215, 0, 0.2);
   border-radius: 18px;
   padding: 14px;
   margin-bottom: 14px;
@@ -230,7 +271,7 @@ body {
 }
 
 .metric {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 14px;
   padding: 10px;
 }
@@ -258,7 +299,7 @@ body {
 }
 
 .history-card {
-  border: 1px solid rgba(255,215,0,0.25);
+  border: 1px solid rgba(255, 215, 0, 0.25);
   border-radius: 16px;
   padding: 12px;
   text-align: left;
@@ -299,11 +340,11 @@ body {
 }
 
 .symmetry-left {
-  background: #FFD700;
+  background: var(--gold);
 }
 
 .symmetry-right {
-  background: #3A3A3C;
+  background: var(--grey);
 }
 
 .symmetry-mid {
@@ -312,20 +353,11 @@ body {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: #F5F5F7;
+  background: var(--white);
   transform: translateX(-50%);
 }
 
 .symmetry-values {
   font-size: 13px;
   color: var(--muted);
-}
-
-.summary-section {
-  margin-bottom: 14px;
-}
-
-.summary-heading {
-  color: var(--muted);
-  margin-bottom: 6px;
 }
