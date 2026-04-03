@@ -108,8 +108,19 @@
         <div class="card">
           <button class="back-link" data-back="home">← Back</button>
           <h2>History</h2>
+
+          <label class="field">
+            <span>Filter by Exercise</span>
+            <select id="historyFilter"></select>
+          </label>
+
+          <div class="button-stack" style="margin-bottom:14px;">
+            <button class="pill secondary" id="btnExportHistory">Export Data (JSON)</button>
+            <button class="pill secondary" id="btnDeleteExerciseHistory">Delete Selected Exercise History</button>
+            <button class="pill secondary" id="btnClearHistory">Clear All History</button>
+          </div>
+
           <div id="historyList" class="history-list"></div>
-          <button class="pill secondary" id="btnClearHistory">Clear History</button>
         </div>
       </section>
 
