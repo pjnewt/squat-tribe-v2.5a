@@ -1,6 +1,6 @@
-const PROFILE_KEY = "squatTribe_v26a_profile";
-const HISTORY_KEY = "squatTribe_v26a_history";
-const ROTATION_KEY = "squatTribe_v26a_rotation";
+const PROFILE_KEY = "squatTribe_v26b_profile";
+const HISTORY_KEY = "squatTribe_v26b_history";
+const ROTATION_KEY = "squatTribe_v26b_rotation";
 
 const EXERCISES = [
   {
@@ -40,6 +40,11 @@ const EXERCISES = [
   }
 ];
 
+const HISTORY_FILTERS = [
+  { key: "all", label: "All exercises" },
+  ...EXERCISES.map(ex => ({ key: ex.key, label: ex.name }))
+];
+
 let reps = 0;
 let running = false;
 let timer = 0;
@@ -70,6 +75,7 @@ let anchorRestTimeout = null;
 let myoRestTimeout = null;
 
 let pendingSession = null;
+let historyFilter = "all";
 
 const el = id => document.getElementById(id);
 
@@ -79,6 +85,7 @@ function init() {
   loadProfileIntoForm();
   loadRotation();
   bindUI();
+  populateHistoryFilter();
   renderHome();
 }
 
@@ -95,7 +102,6 @@ function bindUI() {
   });
 
   el("btnSaveProfile").addEventListener("click", saveProfile);
-  el("btnClearHistory").addEventListener("click", clearHistory);
 
   el("btnStartExercise").addEventListener("click", startSelectedExercise);
 
@@ -107,6 +113,14 @@ function bindUI() {
 
   el("btnSaveSessionChoice").addEventListener("click", commitPendingSession);
   el("btnDeleteSessionChoice").addEventListener("click", discardPendingSession);
+
+  el("historyFilter").addEventListener("change", e => {
+    historyFilter = e.target.value;
+    renderHistoryList();
+  });
+  el("btnExportHistory").addEventListener("click", exportHistoryJson);
+  el("btnDeleteExerciseHistory").addEventListener("click", deleteFilteredHistory);
+  el("btnClearHistory").addEventListener("click", clearHistory);
 }
 
 function showScreen(id) {
@@ -151,6 +165,23 @@ function saveRotation() {
 
 function getCurrentExercise() {
   return EXERCISES[currentExerciseIndex];
+}
+
+function getHistory() {
+  return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+}
+
+function setHistory(history) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+function populateHistoryFilter() {
+  const select = el("historyFilter");
+  if (!select) return;
+  select.innerHTML = HISTORY_FILTERS.map(opt => (
+    `<option value="${opt.key}">${opt.label}</option>`
+  )).join("");
+  select.value = historyFilter;
 }
 
 function renderHome() {
@@ -735,23 +766,28 @@ function discardPendingSession() {
 }
 
 function saveHistorySession(session) {
-  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  const history = getHistory();
   history.unshift(session);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  setHistory(history);
 }
 
-function showHistory() {
-  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+function getFilteredHistory() {
+  const history = getHistory();
+  if (historyFilter === "all") return history;
+  return history.filter(item => item.exerciseKey === historyFilter);
+}
+
+function renderHistoryList() {
+  const history = getFilteredHistory();
   const list = el("historyList");
 
   if (!history.length) {
-    list.innerHTML = `<div class="history-card">No history yet.</div>`;
-    showScreen("screen-history");
+    list.innerHTML = `<div class="history-card">No history for this selection.</div>`;
     return;
   }
 
-  list.innerHTML = history.map((h, idx) => {
-    const previousAvg = getAverageTRDSForExercise(h.exerciseKey, idx + 1).toFixed(2);
+  list.innerHTML = history.map(h => {
+    const previousAvg = getAverageTRDSForExercise(h.exerciseKey).toFixed(2);
 
     if (h.left && h.right) {
       return `
@@ -773,7 +809,9 @@ function showHistory() {
           </div>
 
           Total TRDS: ${h.TRDS} (${previousAvg})<br>
-          Difference: ${h.diffPct}%
+          Difference: ${h.diffPct}%<br><br>
+
+          <button class="pill secondary" onclick="deleteSingleSession('${h.date}', '${h.exerciseKey}')">Delete Session</button>
         </div>
       `;
     }
@@ -785,12 +823,55 @@ function showHistory() {
         Anchor: ${h.anchorReps} reps (${h.anchorTime}s) | TRDS: ${h.anchorTRDS}<br><br>
         ${renderMyoHistory(h.myoSets)}<br><br>
         Total Reps: ${h.totalReps}<br>
-        TRDS: ${h.TRDS} (${previousAvg})
+        TRDS: ${h.TRDS} (${previousAvg})<br><br>
+
+        <button class="pill secondary" onclick="deleteSingleSession('${h.date}', '${h.exerciseKey}')">Delete Session</button>
       </div>
     `;
   }).join("");
+}
 
+function showHistory() {
+  populateHistoryFilter();
+  renderHistoryList();
   showScreen("screen-history");
+}
+
+function deleteSingleSession(date, exerciseKey) {
+  if (!confirm("Delete this session?")) return;
+  const history = getHistory().filter(item => !(item.date === date && item.exerciseKey === exerciseKey));
+  setHistory(history);
+  renderHistoryList();
+  renderHome();
+}
+
+function deleteFilteredHistory() {
+  if (historyFilter === "all") {
+    if (!confirm("Delete all sessions?")) return;
+    setHistory([]);
+  } else {
+    if (!confirm("Delete all sessions for this exercise?")) return;
+    const history = getHistory().filter(item => item.exerciseKey !== historyFilter);
+    setHistory(history);
+  }
+  renderHistoryList();
+  renderHome();
+}
+
+function exportHistoryJson() {
+  const history = getFilteredHistory();
+  const blob = new Blob([JSON.stringify(history, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  const suffix = historyFilter === "all" ? "all" : historyFilter;
+  a.href = url;
+  a.download = `squat-tribe-history-${suffix}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
 }
 
 function renderMyoHistory(myoSets) {
@@ -822,23 +903,20 @@ function percentDifference(a, b) {
 
 function clearHistory() {
   if (!confirm("Clear all history?")) return;
-  localStorage.removeItem(HISTORY_KEY);
-  showHistory();
+  setHistory([]);
+  renderHistoryList();
+  renderHome();
 }
 
-function getAverageTRDSForExercise(exerciseKey, limit = null) {
-  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  const filtered = history
-    .slice(0, limit || history.length)
-    .filter(item => item.exerciseKey === exerciseKey);
-
-  if (!filtered.length) return 0;
-  const sum = filtered.reduce((acc, item) => acc + parseFloat(item.TRDS), 0);
-  return sum / filtered.length;
+function getAverageTRDSForExercise(exerciseKey) {
+  const history = getHistory().filter(item => item.exerciseKey === exerciseKey);
+  if (!history.length) return 0;
+  const sum = history.reduce((acc, item) => acc + parseFloat(item.TRDS), 0);
+  return sum / history.length;
 }
 
 function getLastSessionForExercise(exerciseKey) {
-  const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  const history = getHistory();
   return history.find(item => item.exerciseKey === exerciseKey) || null;
 }
 
